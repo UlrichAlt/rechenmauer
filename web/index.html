@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+
+<!--
+  Copyright (c) 2016, <your name>. All rights reserved. Use of this source code
+  is governed by a BSD-style license that can be found in the LICENSE file.
+-->
+
+<html>
+<head>
+  <title>Rechenmauer im Browser</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="scaffolded-by" content="https://github.com/google/stagehand">
+    <title>rechenmauer</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="main.dart" type="application/dart"></script>
+    <script defer src="packages/browser/dart.js"></script>
+</head>
+
+<body>
+<h1>Rechenmauer</h1>
+
+<div id="inputs">
+<table>
+<tr>
+<td width="25%">Rechnen bis:</td>
+<td><input type="number" id="calc_upto" value="20" placeholder="Dein Wert"></td>
+</tr>
+<tr>
+<td width="25%">Wieviele Stufen:</td>
+<td><input type="number" id="max_levels" value="4" placeholder="Wieviele Stufen"></td>
+</tr>
+</table>
+<button id="new_game">Neues Spiel</button>
+</div>
+
+<div id="content"></div>
+
+</body>
+</html>
