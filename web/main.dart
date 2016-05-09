@@ -20,29 +20,26 @@ class Rechenmauer {
     sub_button = ((querySelector("#new_game") as ButtonElement)
         .onClick
         .listen((event) => InitMauer()));
-    rand = new Random();
+    rand = new Random(322124);
   }
 
   void UnbindDom() {
     sub_button.cancel();
   }
 
-  int balancedRandom(int maxval) =>
-      rand.nextInt(maxval ~/ 2 + 1) + (maxval ~/ 2);
-
   void validateInput(Event ev) {
     var target = ev.target as InputElement;
     var splits = target.id.split('_');
-      target.classes.clear();
-      if (target.value != "")
-    if (data[int.parse(splits[0])][int.parse(splits[1])] ==
+    target.classes.clear();
+    if (target.value != "") if (data[int.parse(splits[0])]
+            [int.parse(splits[1])] ==
         target.valueAsNumber)
       target.classes.add("correct");
     else
       target.classes.add("wrong");
   }
 
-  void initDom() {
+  void initDom([bool debug = false]) {
     content.children.clear();
     for (int row = 0; row < levels; row++) {
       int picked_pos = rand.nextInt(row + 1);
@@ -50,45 +47,65 @@ class Rechenmauer {
       content.children.add(par_elem);
       for (int col = 0; col <= row; col++) {
         var inp_elem = new NumberInputElement();
-        if (picked_pos == col) {
+        if (picked_pos == col || debug) {
           inp_elem.valueAsNumber = data[row][col];
           inp_elem.readOnly = true;
           inp_elem.classes.add("correct");
         }
-        inp_elem.min = 0;
-        inp_elem.max = maxval;
+        inp_elem.min = "0";
+        inp_elem.max = maxval.toString();
         inp_elem.id = row.toString() + "_" + col.toString();
-        inp_elem.onInput.listen(validateInput);
+        if (!debug) inp_elem.onInput.listen(validateInput);
         par_elem.children.add(inp_elem);
       }
     }
   }
 
+  int factorial(int n, int k) {
+    int value = 1;
+    for (int i = 0; i < k; i++) {
+      value *= (n - i);
+      value ~/= (i + 1);
+    }
+    return value;
+  }
+
   void InitMauer() {
-    maxval = int.parse(calc_upto.value);
-    levels = int.parse(max_levels.value);
+    maxval = calc_upto.valueAsNumber;
+    levels = max_levels.valueAsNumber;
 
     data = new List<List<int>>(levels);
-    for (int i = 0; i < levels; i++) data[i] = new List<int>(levels);
-    for (int i = 0; i < levels; i++) data[i].fillRange(0, i, -1);
+    for (int i = 0; i < levels; i++) {
+      data[i] = new List<int>(levels);
+      data[i].fillRange(0, levels - 1, -37);
+    }
 
-    data[0][0] = rand.nextInt(maxval+1);
-    int minimum_pos = 0;
+    int remain = maxval;
+    int left_pos = (levels - 1) ~/ 2;
+    int right_pos = (levels - 1) ~/ 2;
 
-    for (int row = 1; row < levels; row++) {
-      var picked_pos = minimum_pos + rand.nextInt(2);
-      // data[row][picked_pos] = rand.nextInt(data[row - 1][minimum_pos] + 1);
-      data[row][picked_pos] = balancedRandom(data[row - 1][minimum_pos]);
-      for (int col = picked_pos - 1; col >= 0; col--)
-        data[row][col] = data[row - 1][col] - data[row][col + 1];
-      for (int col = picked_pos + 1; col <= row; col++)
-        data[row][col] = data[row - 1][col - 1] - data[row][col - 1];
+    int fact = factorial(levels - 1, left_pos);
 
-      int min_value = 99999;
-      for (int col = 0; col <= row; col++)
-        if (data[row][col] < min_value) {
-        min_value = data[row][col];
-        minimum_pos = col;
+    data[levels - 1][left_pos] = rand.nextInt(maxval ~/ fact);
+    remain -= fact * data[levels - 1][left_pos];
+
+    while ((left_pos > 0) || (right_pos < levels - 1)) {
+      if (right_pos < levels - 1) {
+        right_pos++;
+        fact = factorial(levels - 1, right_pos);
+        data[levels - 1][right_pos] = rand.nextInt(remain ~/ fact);
+        remain -= data[levels - 1][right_pos] * fact;
+      }
+      if (left_pos > 0) {
+        left_pos--;
+        fact = factorial(levels - 1, left_pos);
+        data[levels - 1][left_pos] = rand.nextInt(remain ~/ fact);
+        remain -= data[levels - 1][left_pos] * fact;
+      }
+    }
+    for (int i = levels - 2; i >= 0; i--) {
+      for (int j = 0; j <= i; j++) {
+        data[i][j] = data[i + 1][j] + data[i + 1][j + 1];
       }
     }
     initDom();
