@@ -75,10 +75,7 @@ class Rechenmauer {
     levels = max_levels.valueAsNumber;
 
     data = new List<List<int>>(levels);
-    for (int i = 0; i < levels; i++) {
-      data[i] = new List<int>(levels);
-      data[i].fillRange(0, levels - 1, -37);
-    }
+    for (int i = 0; i < levels; i++) data[i] = new List<int>(levels);
 
     int remain = maxval;
     int left_pos = (levels - 1) ~/ 2;
