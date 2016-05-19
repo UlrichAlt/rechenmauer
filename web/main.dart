@@ -1,5 +1,6 @@
-// Copyright (c) 2016, <your name>. All rights reserved. Use of this source code
+// Copyright (c) 2016, Ulrich Alt All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
+library rechenmauer;
 
 import 'dart:html';
 import 'dart:math';
@@ -13,14 +14,19 @@ class Rechenmauer {
   DivElement content;
   int levels, maxval;
 
+  static const String dom_attribute_name = "correct_value";
+
   Rechenmauer() {
+    rand = new Random(0);
+  }
+
+  void BindToDom() {
     calc_upto = querySelector("#calc_upto");
     max_levels = querySelector("#max_levels");
     content = querySelector("#content");
     sub_button = ((querySelector("#new_game") as ButtonElement)
         .onClick
         .listen((event) => InitMauer()));
-    rand = new Random(322124);
   }
 
   void UnbindDom() {
@@ -29,11 +35,9 @@ class Rechenmauer {
 
   void validateInput(Event ev) {
     var target = ev.target as InputElement;
-    var splits = target.id.split('_');
     target.classes.clear();
-    if (target.value != "") if (data[int.parse(splits[0])]
-            [int.parse(splits[1])] ==
-        target.valueAsNumber)
+    if (target.value != "" &&
+        target.getAttribute(dom_attribute_name) == target.value)
       target.classes.add("correct");
     else
       target.classes.add("wrong");
@@ -53,8 +57,8 @@ class Rechenmauer {
           inp_elem.classes.add("correct");
         }
         inp_elem.min = "0";
+        inp_elem.setAttribute(dom_attribute_name, data[row][col].toString());
         inp_elem.max = maxval.toString();
-        inp_elem.id = row.toString() + "_" + col.toString();
         if (!debug) inp_elem.onInput.listen(validateInput);
         par_elem.children.add(inp_elem);
       }
@@ -83,32 +87,37 @@ class Rechenmauer {
 
     int fact = factorial(levels - 1, left_pos);
 
-    data[levels - 1][left_pos] = rand.nextInt(maxval ~/ fact);
-    remain -= fact * data[levels - 1][left_pos];
+    if (maxval >= fact * 2) {
+      data[levels - 1][left_pos] = rand.nextInt(maxval ~/ fact);
 
-    while ((left_pos > 0) || (right_pos < levels - 1)) {
-      if (right_pos < levels - 1) {
-        right_pos++;
-        fact = factorial(levels - 1, right_pos);
-        data[levels - 1][right_pos] = rand.nextInt(remain ~/ fact);
-        remain -= data[levels - 1][right_pos] * fact;
+      remain -= fact * data[levels - 1][left_pos];
+
+      while ((left_pos > 0) || (right_pos < levels - 1)) {
+        if (right_pos < levels - 1) {
+          right_pos++;
+          fact = factorial(levels - 1, right_pos);
+          data[levels - 1][right_pos] = rand.nextInt(remain ~/ fact);
+          remain -= data[levels - 1][right_pos] * fact;
+        }
+        if (left_pos > 0) {
+          left_pos--;
+          fact = factorial(levels - 1, left_pos);
+          data[levels - 1][left_pos] = rand.nextInt(remain ~/ fact);
+          remain -= data[levels - 1][left_pos] * fact;
+        }
       }
-      if (left_pos > 0) {
-        left_pos--;
-        fact = factorial(levels - 1, left_pos);
-        data[levels - 1][left_pos] = rand.nextInt(remain ~/ fact);
-        remain -= data[levels - 1][left_pos] * fact;
+      for (int i = levels - 2; i >= 0; i--) {
+        for (int j = 0; j <= i; j++) {
+          data[i][j] = data[i + 1][j] + data[i + 1][j + 1];
+        }
       }
-    }
-    for (int i = levels - 2; i >= 0; i--) {
-      for (int j = 0; j <= i; j++) {
-        data[i][j] = data[i + 1][j] + data[i + 1][j + 1];
-      }
-    }
-    initDom();
+      initDom();
+    } else
+      window.alert("Bitte wähle einen größeren Wert bei Rechnen bis");
   }
 }
 
 void main() {
   var rm = new Rechenmauer();
+  rm.BindToDom();
 }
