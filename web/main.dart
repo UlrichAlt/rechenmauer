@@ -22,11 +22,19 @@ class Rechenmauer {
 
   void BindToDom() {
     calc_upto = querySelector("#calc_upto");
-    max_levels = querySelector("#max_levels");
+    max_levels = (querySelector("#max_levels") as InputElement);
+    max_levels.onInput.listen((Event) => updateCalcUpto());
     content = querySelector("#content");
-    sub_button = ((querySelector("#new_game") as ButtonElement)
-        .onClick
-        .listen((event) => InitMauer()));
+    sub_button = querySelector("#new_game") as ButtonElement;
+    sub_button.onClick.listen((event) => InitMauer());
+  }
+
+  void updateCalcUpto() {
+    int minimum =
+        factorial(max_levels.valueAsNumber - 1, max_levels.valueAsNumber ~/ 2) *
+            2;
+    calc_upto.min = minimum.toString();
+    if (!calc_upto.checkValidity()) calc_upto.valueAsNumber = minimum;
   }
 
   void UnbindDom() {
