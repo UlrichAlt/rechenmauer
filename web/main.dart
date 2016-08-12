@@ -5,74 +5,80 @@ library rechenmauer;
 import 'dart:html';
 import 'dart:math';
 
+/// Webapp for Rechenmauern
 class Rechenmauer {
+  /// The data for the tiles.
   List<List<int>> data;
-  Random rand;
-  dynamic sub_button;
-  InputElement calc_upto;
-  InputElement max_levels;
+
+  /// DOM reference to calUpTo field
+  InputElement calcUpTo;
+
+  /// DOM reference to maxLevels field
+  InputElement maxLevels;
+
+  /// DOM reference to Content.
   DivElement content;
-  int levels, maxval;
 
-  static const String dom_attribute_name = "correct_value";
+  /// DOM attribute name for correct value.
+  static const String domAttributeName = "correct_value";
 
-  Rechenmauer() {
-    rand = new Random(0);
-  }
+  /// Constructor empty.
+  Rechenmauer();
 
-  void BindToDom() {
-    calc_upto = querySelector("#calc_upto");
-    max_levels = (querySelector("#max_levels") as InputElement);
-    max_levels.onInput.listen((Event) => updateCalcUpto());
+  /// Create DOM bindings
+  void bindToDom() {
+    calcUpTo = querySelector("#calc_upto");
+    maxLevels = querySelector("#max_levels");
+    maxLevels.onInput.listen((Event ev) => updateCalcUpto());
     content = querySelector("#content");
-    sub_button = querySelector("#new_game") as ButtonElement;
-    sub_button.onClick.listen((event) => InitMauer());
+    querySelector("#new_game").onClick.listen((Event ev) => initMauer());
   }
 
+  /// Update Max Value field depending on number of levels
   void updateCalcUpto() {
     int minimum =
-        factorial(max_levels.valueAsNumber - 1, max_levels.valueAsNumber ~/ 2) *
+        factorial(maxLevels.valueAsNumber - 1, maxLevels.valueAsNumber ~/ 2) *
             2;
-    calc_upto.min = minimum.toString();
-    if (!calc_upto.checkValidity()) calc_upto.valueAsNumber = minimum;
+    calcUpTo.min = minimum.toString();
+    if (!calcUpTo.checkValidity()) calcUpTo.valueAsNumber = minimum;
   }
 
-  void UnbindDom() {
-    sub_button.cancel();
-  }
-
+  /// Update style class if entered guess is correct or not.
   void validateInput(Event ev) {
-    var target = ev.target as InputElement;
+    InputElement target = ev.target;
     target.classes.clear();
     if (target.value != "" &&
-        target.getAttribute(dom_attribute_name) == target.value)
+        target.getAttribute(domAttributeName) == target.value)
       target.classes.add("correct");
     else
       target.classes.add("wrong");
   }
 
-  void initDom([bool debug = false]) {
+  /// Create and initialize DOM nodes with correct values.
+  void initDom(int levels, [bool debug = false]) {
+    Random rand = new Random();
     content.children.clear();
     for (int row = 0; row < levels; row++) {
-      int picked_pos = rand.nextInt(row + 1);
-      var par_elem = new ParagraphElement();
-      content.children.add(par_elem);
+      int pickedPos = rand.nextInt(row + 1);
+      ParagraphElement parElem = new ParagraphElement();
+      content.children.add(parElem);
       for (int col = 0; col <= row; col++) {
-        var inp_elem = new NumberInputElement();
-        if (picked_pos == col || debug) {
-          inp_elem.valueAsNumber = data[row][col];
-          inp_elem.readOnly = true;
-          inp_elem.classes.add("correct");
+        NumberInputElement inpElem = new NumberInputElement();
+        if (pickedPos == col || debug) {
+          inpElem.valueAsNumber = data[row][col];
+          inpElem.readOnly = true;
+          inpElem.classes.add("correct");
         }
-        inp_elem.min = "0";
-        inp_elem.setAttribute(dom_attribute_name, data[row][col].toString());
-        inp_elem.max = maxval.toString();
-        if (!debug) inp_elem.onInput.listen(validateInput);
-        par_elem.children.add(inp_elem);
+        inpElem.min = "0";
+        inpElem.setAttribute(domAttributeName, data[row][col].toString());
+        inpElem.max = calcUpTo.value;
+        if (!debug) inpElem.onInput.listen(validateInput);
+        parElem.children.add(inpElem);
       }
     }
   }
 
+  /// Compute binomial coefficient (n over k).
   int factorial(int n, int k) {
     int value = 1;
     for (int i = 0; i < k; i++) {
@@ -82,36 +88,38 @@ class Rechenmauer {
     return value;
   }
 
-  void InitMauer() {
-    maxval = calc_upto.valueAsNumber;
-    levels = max_levels.valueAsNumber;
+  /// Compute values of tiles.
+  void initMauer() {
+    Random rand = new Random();
+    int maxval = calcUpTo.valueAsNumber;
+    int levels = maxLevels.valueAsNumber;
 
     data = new List<List<int>>(levels);
     for (int i = 0; i < levels; i++) data[i] = new List<int>(levels);
 
     int remain = maxval;
-    int left_pos = (levels - 1) ~/ 2;
-    int right_pos = (levels - 1) ~/ 2;
+    int leftPos = (levels - 1) ~/ 2;
+    int rightPos = (levels - 1) ~/ 2;
 
-    int fact = factorial(levels - 1, left_pos);
+    int fact = factorial(levels - 1, leftPos);
 
     if (maxval >= fact * 2) {
-      data[levels - 1][left_pos] = rand.nextInt(maxval ~/ fact);
+      data[levels - 1][leftPos] = rand.nextInt(maxval ~/ fact);
 
-      remain -= fact * data[levels - 1][left_pos];
+      remain -= fact * data[levels - 1][leftPos];
 
-      while ((left_pos > 0) || (right_pos < levels - 1)) {
-        if (right_pos < levels - 1) {
-          right_pos++;
-          fact = factorial(levels - 1, right_pos);
-          data[levels - 1][right_pos] = rand.nextInt(remain ~/ fact);
-          remain -= data[levels - 1][right_pos] * fact;
+      while ((leftPos > 0) || (rightPos < levels - 1)) {
+        if (rightPos < levels - 1) {
+          rightPos++;
+          fact = factorial(levels - 1, rightPos);
+          data[levels - 1][rightPos] = rand.nextInt(remain ~/ fact);
+          remain -= data[levels - 1][rightPos] * fact;
         }
-        if (left_pos > 0) {
-          left_pos--;
-          fact = factorial(levels - 1, left_pos);
-          data[levels - 1][left_pos] = rand.nextInt(remain ~/ fact);
-          remain -= data[levels - 1][left_pos] * fact;
+        if (leftPos > 0) {
+          leftPos--;
+          fact = factorial(levels - 1, leftPos);
+          data[levels - 1][leftPos] = rand.nextInt(remain ~/ fact);
+          remain -= data[levels - 1][leftPos] * fact;
         }
       }
       for (int i = levels - 2; i >= 0; i--) {
@@ -119,13 +127,13 @@ class Rechenmauer {
           data[i][j] = data[i + 1][j] + data[i + 1][j + 1];
         }
       }
-      initDom();
+      initDom(levels);
     } else
       window.alert("Bitte wähle einen größeren Wert bei Rechnen bis");
   }
 }
 
 void main() {
-  var rm = new Rechenmauer();
-  rm.BindToDom();
+  Rechenmauer rm = new Rechenmauer();
+  rm.bindToDom();
 }

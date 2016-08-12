@@ -22,7 +22,6 @@ linter:
     - library_prefixes
     - non_constant_identifier_names
     - one_member_abstracts
-    - overriden_field
     - package_api_docs
     - package_names
     - package_prefixed_library_names

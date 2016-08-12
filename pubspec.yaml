@@ -1,5 +1,5 @@
 name: 'rechenmauer'
-version: 0.0.1
+version: 0.0.2
 description: Rechenmauern für Lina
 author: Ulrich Alt <ualt@west-gmbh.de>
 
@@ -7,7 +7,7 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 
 dependencies:
-  browser: '>=0.10.0 <0.11.0'
+  browser: any
   dart_to_js_script_rewriter: '^1.0.1'
 
 transformers:
